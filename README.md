@@ -34,7 +34,7 @@ Objetivo e fazer análise de sentimentos na frases e sabe como está o corpotame
 
 | Projeto               | Link                                                |
 | ----------------- | ---------------------------------------------------------------- |
-| Modelo machine learning - NLP Twitter |  |
+| Modelo machine learning - NLP Twitter |[Link](https://github.com/RafaelGallo/Modelos-NLP-R/blob/main/R/Model_NLP.R)|
 
 
 
