@@ -1,0 +1,283 @@
+---
+title: "Análise de Sentimentos em Redes Sociais"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+---
+
+# Mini-Projeto 1 - Análise de Sentimentos em Redes Sociais
+
+Este projeto é parte integrante do curso Big Data Analytics com R e Microsoft Azure da Formação Cientista de Dados. 
+O objetivo é captutar dados da rede social Twitter e realizar análise de sentimentos com os dados capturados. 
+Para que este projeto possa ser executado, diversos pacotes devem ser instalados e carregados.
+Todo o projeto será descrito de acordo com suas etapas. 
+Primeiro usaremos o cálculo de score de sentimento e em seguida usaremos um classificador com o algoritmo Naive Bayes
+
+Importando as bibliotecas
+```{r}
+library(SnowballC)
+library(tm)
+library(twitteR)
+library(httr)
+library(ggplot2)
+library(knitr)
+library(rmarkdown)
+library(RColorBrewer)
+library(wordcloud)
+library(readr)
+```
+
+Carregando a biblioteca com funções de limpeza
+```{r}
+source('utils.R')
+options(warn=-1)
+```
+
+# Etapa 1 - Autenticação ###### 
+
+- Abaixo você encontra o processo de autenticação. Lembre-se que você precisa ter uma conta criada no Twitter
+- E criar uma aplicação. Os passos para criação da aplicação estão detalhados na especificação do projeto.
+```{r}
+# Criando autenticação no Twitter
+key <- "CHAVE API"
+secret <- "CHAVE SECRET"
+token <- "TOKEN"
+tokensecret <- "TOKEN SECRET"
+```
+
+# Etapa 2 - Conexão
+
+Aqui vamos testar a conexão e capturar os tweets. Quanto maior sua amostra, mais precisa sua análise. 
+Mas a coleta de dados pode levar tempo, dependendo da sua conexão com a internet. Comece com 100 tweets, 
+pois à medida que você aumenta a quantidade, vai exigir mais recursos do seu computador. Buscaremos tweets com referência a hashtag #BigData.
+
+# Carregando dataset
+```{r}
+data <- read_csv("Sentiment_Data.csv")
+data
+```
+
+```{r}
+# Visualizando os cinco primeiros dados
+head(data)
+```
+
+```{r}
+# Visualizando os cinco últimos dados
+tail(data)
+```
+
+```{r}
+# Linhas e colunas
+dim(data)
+```
+
+# Etapa 3 - Tratamento dos dados coletados através de text mining 
+
+- Aqui vamos instalar o pacote tm, para text mining. Vamos converter os tweets coletados em um objeto do tipo Corpus, que armazena dados e metadados e na sequência faremos alguns processo de limpeza.
+- Remover pontuação, converter os dados para letras minúsculas e remover as stopwords (palavras comuns do idioma inglês, neste caso).
+```{r}
+library(tidyverse)
+data_1 <- data %>%
+  select(text, sentiment)
+head(data_1)
+```
+
+Estrutura do conjunto de dados É sempre uma boa prática verificar se o conjunto de dados está na estrutura correta, ou seja, uma variável numérica não é armazenada como string
+E assim por diante.Também precisamos verificar a proporção das classes na coluna de sentimento.
+```{r}
+str(data_1)
+```
+As variáveis estão na estrutura correta e a proporção de sentimentos em nosso conjunto de dados é que temos 28% como negativos, 40% como neutros e 31% como positivos.
+```{r}
+round(prop.table(table(data_1$sentiment)), 2)
+```
+# Etapa 4 - Limpeza dados
+
+Os dados geralmente vêm de fontes diferentes e na maioria das vezes não vêm no formato certo para a máquina processá-los. 
+Portanto, a limpeza de dados é um aspecto importante de um projeto de ciência de dados.
+Portanto, trabalhar com dados de texto é mais complicado do que com dados regulares e uma das razões para isso é porque o texto.
+Pode vir em diferentes formas com diferentes combinações de maiúsculas e minúsculas, gírias, o uso de símbolos como @, &; e assim por diante. 
+Na mineração de texto, precisamos colocar as palavras em minúsculas, remover palavras de paradas que não adicionam nenhum significado ao modelo etc.
+```{r}
+library(tm)
+library(SnowballC) ## Carregando pacote necessário: NLP
+```
+
+```{r}
+nlp_corpus = VCorpus(VectorSource(data_1$text))
+```
+
+```{r}
+# Um instantâneo do primeiro texto armazenado no corpus
+as.character(nlp_corpus[[1]])
+```
+# Tratamento dos textos
+```{r}
+# Com este código aqui, estamos levando todo o texto para letras minúsculas, removendo números, removendo pontuação, palavras irrelevantes e assim por diante)
+nlp_corpus = tm_map(nlp_corpus, content_transformer(tolower))
+nlp_corpus = tm_map(nlp_corpus, removeNumbers)
+nlp_corpus = tm_map(nlp_corpus, removePunctuation)
+nlp_corpus = tm_map(nlp_corpus, removeWords, stopwords("english"))
+nlp_corpus = tm_map(nlp_corpus, stemDocument)
+nlp_corpus = tm_map(nlp_corpus, stripWhitespace)
+as.character(nlp_corpus[[1]])
+```
+
+# Criando a Matriz de Termo do Documento para o modelo
+- Uma matriz de termo de documento é uma matriz matemática que descreve a frequência de termos que ocorrem em uma coleção de documentos.
+```{r}
+matrix_sent = DocumentTermMatrix(nlp_corpus)
+matrix_sent
+```
+A matriz documento-termo possui atualmente 27.481 palavras extraídas de 22.379 tweets. 
+Essas palavras são o que usaremos para decidir se um tweet é positivo ou negativo. 
+A escassez do matrix_m é 100%, o que significa que nenhuma palavra é deixada de fora da matriz.
+```{r}
+matrix_m = removeSparseTerms(matrix_sent, 0.999)
+dim(matrix_m)
+```
+Inspecionando os primeiros 10 tweets e as primeiras 15 palavras no conjunto de dados
+```{r}
+inspect(matrix_m[0:10, 1:15])
+feq <- sort(colSums(as.matrix(matrix_m)), decreasing = TRUE)
+feq
+```
+É bom dar uma olhada em palavras que apareceram mais de 60 vezes.
+Identificando termos que aparecem mais de 60 vezes
+```{r}
+pal_60 <- findFreqTerms(matrix_m, lowfreq = 60)
+pal_60
+```
+
+```{r}
+# Criando dataframe palavras mais faladas
+grad <- data.frame(word=names(feq), feq=feq)
+head(grad)
+```
+
+```{r}
+positive <- subset(data,sentiment=="Positive")
+negative <- subset(data_1,sentiment=="Negative")
+neutral <- subset(data_1,sentiment=="Neutral")
+head(positive)
+head(negative)
+head(neutral)
+```
+# Etapa 5 - Wordcloud, associação entre as palavras
+
+- Vamos criar uma nuvem de palavras (wordcloud) para verificar a relação entre as palavras que ocorrem nas palavras.
+- Mais frequência. Criamos uma tabela com a frequência das palavras.
+- Mostra como as palavras se relaiconam e se associam ao tema principal (em nosso caso, o termo BigData).
+
+- Gerando uma nuvem palavras - Positivas
+```{r}
+#wordcloud(positive$text, max.words = 100, scale = c(3,0.5))
+```
+- Gerando uma nuvem palavras - Negativas
+```{r}
+#wordcloud(negative$text, max.words = 100, scale = c(3,0.5))
+```
+- Gerando uma nuvem palavras - Neutral
+```{r}
+#wordcloud(neutral$text, max.words = 100, scale = c(3,0.5))
+```
+# Etapa 6 - Modelo machine learning
+
+- Naive Bayes treina em dados categóricos, os dados numéricos são convertidos em dados categóricos. 
+- Vamos converter os recursos numéricos criando uma função que converte qualquer valor positivo.
+- Diferente de zero em “Sim” e todos os valores zero em “Não” para indicar se um termo específico está presente no documento.
+```{r}
+convert_count <- function(x) {
+  y <- ifelse(x > 0, 1,0)
+  y <- factor(y, levels=c(0,1), labels=c("No", "Yes"))
+  y
+}
+```
+
+
+- Aplique a função convert_count para obter o treinamento final e testar os DTMs
+```{r}
+dataset_NB <- apply(matrix_m, 2, convert_count)
+dataset_1 = as.data.frame(as.matrix(dataset_NB))
+```
+
+- O corpus de texto agora está armazenado como um dataframe e, portanto, precisaremos mesclar isso com a variável de classe.
+```{r}
+dataset_1$Class = data_1$sentiment
+str(dataset_1$Class)
+```
+
+
+```{r}
+head(dataset_1)
+dim(dataset_1)
+```
+
+# Etapa 7 Divisão de dados 
+- Divindo treino e teste para modelo
+```{r}
+set.seed(222)
+n_split = sample(2, nrow(dataset_1), prob = c(0.75,0.25), replace = TRUE)
+
+train = dataset_1[n_split == 1,]
+test = dataset_1[n_split == 2,]
+```
+
+
+```{r}
+# Visualizando os dados de treino
+dim(train)
+```
+
+
+```{r}
+# Visualizando os dados de teste
+dim(test)
+```
+
+
+```{r}
+# Tabela sentimentos dados treino
+prop.table(table(train$Class))
+```
+
+
+```{r}
+# Tabela sentimentos dados teste
+prop.table(table(test$Class))
+```
+# Etapa 8 Modelos machine learning 
+- Modelo 01 - Naive Bayes
+```{r}
+# Importtando a biblioteca naive bayes
+library(e1071)
+
+# Modelo 
+model_naive_bayes <- naiveBayes(train, # Variavel treinamento 
+                                train$Class, # Variavel alvo
+                                laplace = 1, # Time
+                                trControl = control,tuneLength = 7)
+
+# Imprimindo o modelo
+model_naive_bayes
+```
+
+
+```{r}
+# Previsão do modelo
+model_naive_bayes_pred = predict(classifier_nb, type = 'class', newdata = test)
+model_naive_bayes_pred
+```
+
+
+```{r}
+# Matriz confusão do modelo
+confusionMatrix(model_naive_bayes_pred, test$Class)
+```
+
+# Conclusão projeto
+
+R: O modelo Naive Bayes tem o melhor desempenho com 99% de precisão em comparação. Naive Bayes trabalha com a suposição de que as características do conjunto de dados são independentes umas das outras – por isso são chamadas de Naive. Funciona bem para modelos de pacote de palavras, também conhecidos como documentos de texto, pois as palavras em um documento de texto são independentes umas das outras.
+A localização de uma palavra não depende de outra palavra. Portanto, ela satisfaz a suposição de independência do modelo Naive Bayes. É, portanto, o modelo mais comumente usado para classificação de texto, análise de sentimentos, filtragem de spam e sistemas de recomendação.
