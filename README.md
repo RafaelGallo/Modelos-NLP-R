@@ -136,24 +136,13 @@ model_naive_bayes_pred
 confusionMatrix(model_naive_bayes_pred, test$Class)
 ```
 ## Documentação
-
 [Dataset - Modelo NLP](https://www.kaggle.com/datasets/crowdflower/first-gop-debate-twitter-sentiment)
 
-
-
 ## Screenshots
-
 ![App Screenshot](https://datarefiner.com/static/img/linkedin_datarefiner_ui.gif)
 
-
 ## Suporte
-
 Para suporte, mande um email para rafaelhenriquegallo@gmail.com ou entre em nosso canal do Slack.
-
-
-## Curso formação cientista de dados
-
-- Projeto na prática 1 da formação cientista de dados
 
 
 ## Referência
