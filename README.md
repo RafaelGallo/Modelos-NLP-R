@@ -37,9 +37,7 @@ Objetivo e fazer análise de sentimentos na frases e sabe como está o corpotame
 | Modelo machine learning - NLP Twitter |[Link](https://github.com/RafaelGallo/Modelos-NLP-R/blob/main/R/Model_NLP.R)|
 
 
-
-
-## Demo modelo machine learning - Azure machine learning
+## Demo modelo machine learning - Processamento de linguagem natural
 
 ```bash
 # Demo modelo machine learning
