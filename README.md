@@ -1,8 +1,5 @@
 # Modelos-NLP R
 
-Nesse projetos são voltado modelos de machine learning - Aplicando processo de linguagem natural NLP.
-Objetivo e fazer análise de sentimentos na frases e sabe como está o corpotamentos das pessoas nas rede social como positivos, neutro, negativo
-
 [![MIT License](https://img.shields.io/apm/l/atomic-design-ui.svg?)](https://github.com/tterb/atomic-design-ui/blob/master/LICENSEs)
 [![GPLv3 License](https://img.shields.io/badge/License-GPL%20v3-yellow.svg)](https://opensource.org/licenses/)
 [![AGPL License](https://img.shields.io/badge/license-AGPL-blue.svg)](http://www.gnu.org/licenses/agpl-3.0)
@@ -16,6 +13,10 @@ Objetivo e fazer análise de sentimentos na frases e sabe como está o corpotame
 [![](https://img.shields.io/badge/plotly-green.svg)](https://plotly.com/)
 [![](https://img.shields.io/badge/XGBoost-red.svg)](https://xgboost.readthedocs.io/en/stable/#)
 [![](https://img.shields.io/badge/Caret-orange.svg)](https://caret.tidyverse.org/)
+
+# Objetivo
+Nesse projetos são voltado modelos de machine learning - Aplicando processo de linguagem natural NLP.
+Objetivo e fazer análise de sentimentos na frases e sabe como está o corpotamentos das pessoas nas rede social como positivos, neutro, negativo.
 
 ![Logo](https://as2.ftcdn.net/v2/jpg/04/97/18/07/1000_F_497180791_7J0TPgYrfSXeXHjIp8XoRnuE6eW7zF1b.jpg)
 
